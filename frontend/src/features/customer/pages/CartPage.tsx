@@ -2,8 +2,8 @@
 // Shopping Cart Page
 // ============================================
 
-import { useCart } from "@/contexts/CartContext";
-import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/features/customer/context/CartContext";
+import { useAuth } from "@/features/auth/context/AuthContext";
 import { useCreateOrder } from "@/hooks/useApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

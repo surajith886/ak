@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import { medicineCategories } from "@/data/mockData";
-import { useCart } from "@/contexts/CartContext";
+import { useCart } from "@/features/customer/context/CartContext";
 import { useMedicines } from "@/hooks/useApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

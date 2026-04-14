@@ -1,57 +1,12 @@
-import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
-import cors from 'cors';
 import connectDB from './config/db';
-
-// Route Imports
-import userRoutes from './routes/userRoutes';
-import medicineRoutes from './routes/medicineRoutes';
-import orderRoutes from './routes/orderRoutes';
-import notificationRoutes from './routes/notificationRoutes';
+import app from './app';
 
 // Load env before using
 dotenv.config();
 
 // Connect to database
 connectDB();
-
-const app: Express = express();
-
-// Middleware
-const allowedOrigins = (process.env.CORS_ORIGIN || "")
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow non-browser requests and local tools without Origin header.
-      if (!origin) {
-        callback(null, true);
-        return;
-      }
-
-      if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
-        callback(null, true);
-        return;
-      }
-
-      callback(new Error("Not allowed by CORS"));
-    },
-  })
-);
-app.use(express.json());
-
-// Routes
-app.use('/api/users', userRoutes);
-app.use('/api/medicines', medicineRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/notifications', notificationRoutes);
-
-app.get('/api/config', (req: Request, res: Response) => {
-  res.send({ status: 'API is running' });
-});
 
 const PORT = process.env.PORT || 5000;
 

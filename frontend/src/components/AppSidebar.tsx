@@ -3,8 +3,8 @@
 // ============================================
 
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/features/auth/context/AuthContext";
+import { useCart } from "@/features/customer/context/CartContext";
 import {
   LayoutDashboard,
   Pill,

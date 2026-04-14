@@ -3,7 +3,7 @@
 // ============================================
 
 import { Outlet, Navigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/features/auth/context/AuthContext";
 import AppSidebar from "@/components/AppSidebar";
 
 const AppLayout = () => {

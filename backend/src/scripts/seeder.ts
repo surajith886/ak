@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import bcrypt from 'bcrypt';
-import connectDB from './config/db';
-import User from './models/userModel';
-import Medicine from './models/medicineModel';
-import Order from './models/orderModel';
-import Notification from './models/notificationModel';
+import connectDB from '../config/db';
+import User from '../models/userModel';
+import Medicine from '../models/medicineModel';
+import Order from '../models/orderModel';
+import Notification from '../models/notificationModel';
 
 dotenv.config();
 connectDB();
