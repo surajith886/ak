@@ -8,15 +8,15 @@ import generateToken from '../utils/generateToken';
 export const authUser = async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ where: { email } });
 
   if (user && (await user.matchPassword(password))) {
     res.json({
-      _id: user._id,
+      _id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
-      token: generateToken(String(user._id), user.role),
+      token: generateToken(user.id, user.role),
     });
   } else {
     res.status(401).json({ message: 'Invalid email or password' });
@@ -29,7 +29,7 @@ export const authUser = async (req: Request, res: Response): Promise<void> => {
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
   const { name, email, password, role } = req.body;
 
-  const userExists = await User.findOne({ email });
+  const userExists = await User.findOne({ where: { email } });
 
   if (userExists) {
     res.status(400).json({ message: 'User already exists' });
@@ -45,11 +45,11 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 
   if (user) {
     res.status(201).json({
-      _id: user._id,
+      _id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
-      token: generateToken(String(user._id), user.role),
+      token: generateToken(user.id, user.role),
     });
   } else {
     res.status(400).json({ message: 'Invalid user data' });

@@ -1,23 +1,25 @@
 import { Request, Response } from 'express';
 import Medicine from '../models/medicineModel';
+import { Op } from 'sequelize';
 
 // @desc    Fetch all medicines
 // @route   GET /api/medicines
 // @access  Public
 export const getMedicines = async (req: Request, res: Response) => {
   const category = req.query.category as string;
-  const keyword = req.query.keyword
-    ? {
-        name: {
-          $regex: req.query.keyword as string,
-          $options: 'i',
-        },
-      }
-    : {};
+  const keyword = req.query.keyword as string;
 
-  const query = category && category !== 'All' ? { ...keyword, category } : { ...keyword };
+  const where: any = {};
+  
+  if (keyword) {
+    where.name = { [Op.like]: `%${keyword}%` };
+  }
+  
+  if (category && category !== 'All') {
+    where.category = category;
+  }
 
-  const medicines = await Medicine.find(query);
+  const medicines = await Medicine.findAll({ where });
   res.json(medicines);
 };
 
@@ -25,7 +27,7 @@ export const getMedicines = async (req: Request, res: Response) => {
 // @route   GET /api/medicines/:id
 // @access  Public
 export const getMedicineById = async (req: Request, res: Response) => {
-  const medicine = await Medicine.findById(req.params.id);
+  const medicine = await Medicine.findByPk(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   if (medicine) {
     res.json(medicine);
@@ -38,24 +40,19 @@ export const getMedicineById = async (req: Request, res: Response) => {
 // @route   POST /api/medicines
 // @access  Private/Admin
 export const createMedicine = async (req: Request, res: Response) => {
-  const medicine = new Medicine({
-    ...req.body,
-  });
-
-  const createdMedicine = await medicine.save();
-  res.status(201).json(createdMedicine);
+  const medicine = await Medicine.create(req.body);
+  res.status(201).json(medicine);
 };
 
 // @desc    Update a medicine
 // @route   PUT /api/medicines/:id
 // @access  Private/Admin
 export const updateMedicine = async (req: Request, res: Response) => {
-  const medicine = await Medicine.findById(req.params.id);
+  const medicine = await Medicine.findByPk(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   if (medicine) {
-    Object.assign(medicine, req.body);
-    const updatedMedicine = await medicine.save();
-    res.json(updatedMedicine);
+    await medicine.update(req.body);
+    res.json(medicine);
   } else {
     res.status(404).json({ message: 'Medicine not found' });
   }
@@ -65,10 +62,10 @@ export const updateMedicine = async (req: Request, res: Response) => {
 // @route   DELETE /api/medicines/:id
 // @access  Private/Admin
 export const deleteMedicine = async (req: Request, res: Response) => {
-  const medicine = await Medicine.findById(req.params.id);
+  const medicine = await Medicine.findByPk(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   if (medicine) {
-    await Medicine.deleteOne({ _id: medicine._id });
+    await medicine.destroy();
     res.json({ message: 'Medicine removed' });
   } else {
     res.status(404).json({ message: 'Medicine not found' });

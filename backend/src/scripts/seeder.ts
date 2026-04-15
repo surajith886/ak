@@ -1,14 +1,11 @@
-import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import bcrypt from 'bcrypt';
-import connectDB from '../config/db';
+import connectDB, { sequelize } from '../config/db';
 import User from '../models/userModel';
 import Medicine from '../models/medicineModel';
 import Order from '../models/orderModel';
 import Notification from '../models/notificationModel';
 
 dotenv.config();
-connectDB();
 
 const users = [
   {
@@ -149,27 +146,26 @@ const notifications = [
 
 const importData = async () => {
   try {
-    await Order.deleteMany();
-    await Medicine.deleteMany();
-    await User.deleteMany();
-    await Notification.deleteMany();
+    await connectDB();
+    await sequelize.sync({ alter: true });
 
-    const hashedUsers = await Promise.all(
-      users.map(async (user) => ({
-        ...user,
-        password: await bcrypt.hash(user.password, 10),
-      }))
-    );
-    await User.insertMany(hashedUsers);
+    // Clear all tables
+    await Order.destroy({ where: {}, truncate: true });
+    await Medicine.destroy({ where: {}, truncate: true });
+    await User.destroy({ where: {}, truncate: true });
+    await Notification.destroy({ where: {}, truncate: true });
+
+    // Create users (password will be hashed by beforeCreate hook)
+    await User.bulkCreate(users);
     
-    // Insert medicines
-    await Medicine.insertMany(medicines);
+    // Create medicines
+    await Medicine.bulkCreate(medicines);
 
-    // Insert notifications
-    await Notification.insertMany(notifications);
+    // Create notifications
+    await Notification.bulkCreate(notifications);
 
     console.log('Data Imported!');
-    process.exit();
+    process.exit(0);
   } catch (error) {
     console.error(`Error: ${(error as Error).message}`);
     process.exit(1);
@@ -178,13 +174,17 @@ const importData = async () => {
 
 const destroyData = async () => {
   try {
-    await Order.deleteMany();
-    await Medicine.deleteMany();
-    await User.deleteMany();
-    await Notification.deleteMany();
+    await connectDB();
+    await sequelize.sync({ alter: true });
+
+    // Clear all tables
+    await Order.destroy({ where: {}, truncate: true });
+    await Medicine.destroy({ where: {}, truncate: true });
+    await User.destroy({ where: {}, truncate: true });
+    await Notification.destroy({ where: {}, truncate: true });
 
     console.log('Data Destroyed!');
-    process.exit();
+    process.exit(0);
   } catch (error) {
     console.error(`Error: ${(error as Error).message}`);
     process.exit(1);

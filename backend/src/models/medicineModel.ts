@@ -1,38 +1,83 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import { DataTypes, Model } from 'sequelize';
+import { sequelize } from '../config/db';
 
-export interface IMedicine extends Document {
-  name: string;
-  genericName: string;
-  category: string;
-  manufacturer: string;
-  price: number;
-  stock: number;
-  lowStockThreshold: number;
-  expiryDate: string;
-  description: string;
-  dosage: string;
-  requiresPrescription: boolean;
+export class Medicine extends Model {
+  public id!: string;
+  public name!: string;
+  public genericName!: string;
+  public category!: string;
+  public manufacturer!: string;
+  public price!: number;
+  public stock!: number;
+  public lowStockThreshold!: number;
+  public expiryDate!: string;
+  public description!: string;
+  public dosage!: string;
+  public requiresPrescription!: boolean;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 }
 
-const medicineSchema: Schema = new Schema(
+Medicine.init(
   {
-    name: { type: String, required: true },
-    genericName: { type: String, required: true },
-    category: { type: String, required: true },
-    manufacturer: { type: String, required: true },
-    price: { type: Number, required: true },
-    stock: { type: Number, required: true, default: 0 },
-    lowStockThreshold: { type: Number, required: true, default: 10 },
-    expiryDate: { type: String, required: true },
-    description: { type: String, required: true },
-    dosage: { type: String, required: true },
-    requiresPrescription: { type: Boolean, required: true, default: false },
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    genericName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    category: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    manufacturer: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    price: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+    },
+    stock: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
+    lowStockThreshold: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 10,
+    },
+    expiryDate: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+    dosage: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    requiresPrescription: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
   },
   {
+    sequelize,
+    tableName: 'medicines',
     timestamps: true,
   }
 );
-
-const Medicine = mongoose.model<IMedicine>('Medicine', medicineSchema);
 
 export default Medicine;

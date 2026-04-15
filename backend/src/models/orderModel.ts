@@ -1,49 +1,69 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import { DataTypes, Model } from 'sequelize';
+import { sequelize } from '../config/db';
 
-export interface IOrderItem {
-  medicineId: mongoose.Types.ObjectId;
+export class Order extends Model {
+  public id!: string;
+  public customerId!: string;
+  public customerName!: string;
+  public items!: OrderItem[];
+  public total!: number;
+  public status!: 'pending' | 'approved' | 'rejected' | 'delivered' | 'cancelled';
+  public prescriptionUrl?: string;
+  public prescriptionRequired!: boolean;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+export interface OrderItem {
+  medicineId: string;
   medicineName: string;
   quantity: number;
   price: number;
 }
 
-export interface IOrder extends Document {
-  customerId: mongoose.Types.ObjectId;
-  customerName: string;
-  items: IOrderItem[];
-  total: number;
-  status: 'pending' | 'approved' | 'rejected' | 'delivered' | 'cancelled';
-  prescriptionUrl?: string;
-  prescriptionRequired: boolean;
-}
-
-const orderItemSchema = new Schema({
-  medicineId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Medicine' },
-  medicineName: { type: String, required: true },
-  quantity: { type: Number, required: true },
-  price: { type: Number, required: true },
-});
-
-const orderSchema: Schema = new Schema(
+Order.init(
   {
-    customerId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
-    customerName: { type: String, required: true },
-    items: [orderItemSchema],
-    total: { type: Number, required: true },
-    status: {
-      type: String,
-      required: true,
-      enum: ['pending', 'approved', 'rejected', 'delivered', 'cancelled'],
-      default: 'pending',
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
     },
-    prescriptionUrl: { type: String },
-    prescriptionRequired: { type: Boolean, required: true, default: false },
+    customerId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
+    customerName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    items: {
+      type: DataTypes.JSON,
+      allowNull: false,
+      defaultValue: [],
+    },
+    total: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+    },
+    status: {
+      type: DataTypes.ENUM('pending', 'approved', 'rejected', 'delivered', 'cancelled'),
+      defaultValue: 'pending',
+      allowNull: false,
+    },
+    prescriptionUrl: {
+      type: DataTypes.STRING,
+    },
+    prescriptionRequired: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
   },
   {
+    sequelize,
+    tableName: 'orders',
     timestamps: true,
   }
 );
-
-const Order = mongoose.model<IOrder>('Order', orderSchema);
 
 export default Order;

@@ -12,8 +12,8 @@ export const addOrderItems = async (req: AuthRequest, res: Response) => {
     res.status(400).json({ message: 'No order items' });
     return;
   } else {
-    const order = new Order({
-      customerId: req.user?._id,
+    const order = await Order.create({
+      customerId: req.user?.id,
       customerName: req.user?.name,
       items,
       total,
@@ -21,8 +21,7 @@ export const addOrderItems = async (req: AuthRequest, res: Response) => {
       prescriptionRequired,
     });
 
-    const createdOrder = await order.save();
-    res.status(201).json(createdOrder);
+    res.status(201).json(order);
   }
 };
 
@@ -31,21 +30,22 @@ export const addOrderItems = async (req: AuthRequest, res: Response) => {
 // @access  Private
 export const getOrders = async (req: AuthRequest, res: Response) => {
   if (req.user?.role === 'admin') {
-    const orders = await Order.find({}).sort({ createdAt: -1 });
+    const orders = await Order.findAll({ order: [['createdAt', 'DESC']] });
     res.json(orders);
   } else {
-    const orders = await Order.find({ customerId: req.user?._id }).sort({ createdAt: -1 });
+    const orders = await Order.findAll({
+      where: { customerId: req.user?.id },
+      order: [['createdAt', 'DESC']],
+    });
     res.json(orders);
   }
 };
 
 // @desc    Update order status
 // @route   PUT /api/orders/:id/status
-// @access  Private/Admin Validate Status Change
+// @access  Private/Admin
 export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
   const { status } = req.body;
-
-  const order = await Order.findById(req.params.id);
 
   // Simple admin check
   if (req.user?.role !== 'admin') {
@@ -53,10 +53,11 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
     return;
   }
 
+  const order = await Order.findByPk(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
+
   if (order) {
-    order.status = status || order.status;
-    const updatedOrder = await order.save();
-    res.json(updatedOrder);
+    await order.update({ status: status || order.status });
+    res.json(order);
   } else {
     res.status(404).json({ message: 'Order not found' });
   }

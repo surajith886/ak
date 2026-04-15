@@ -1,30 +1,50 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import { DataTypes, Model } from 'sequelize';
+import { sequelize } from '../config/db';
 
-export interface INotification extends Document {
-  type: 'low_stock' | 'expiry_warning' | 'new_order' | 'general';
-  title: string;
-  message: string;
-  read: boolean;
-  relatedId?: string; // id of order or medicine
+export class Notification extends Model {
+  public id!: string;
+  public type!: 'low_stock' | 'expiry_warning' | 'new_order' | 'general';
+  public title!: string;
+  public message!: string;
+  public read!: boolean;
+  public relatedId?: string;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 }
 
-const notificationSchema: Schema = new Schema(
+Notification.init(
   {
-    type: {
-      type: String,
-      required: true,
-      enum: ['low_stock', 'expiry_warning', 'new_order', 'general'],
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
     },
-    title: { type: String, required: true },
-    message: { type: String, required: true },
-    read: { type: Boolean, required: true, default: false },
-    relatedId: { type: String },
+    type: {
+      type: DataTypes.ENUM('low_stock', 'expiry_warning', 'new_order', 'general'),
+      allowNull: false,
+    },
+    title: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    message: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+    read: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    relatedId: {
+      type: DataTypes.STRING,
+    },
   },
   {
+    sequelize,
+    tableName: 'notifications',
     timestamps: true,
   }
 );
-
-const Notification = mongoose.model<INotification>('Notification', notificationSchema);
 
 export default Notification;

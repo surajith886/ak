@@ -1,43 +1,58 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import { DataTypes, Model } from 'sequelize';
+import { sequelize } from '../config/db';
 import bcrypt from 'bcrypt';
 
-export interface IUser extends Document {
-  name: string;
-  email: string;
-  password?: string;
-  role: 'admin' | 'customer';
-  createdAt: Date;
-  matchPassword(enteredPassword: string): Promise<boolean>;
+export class User extends Model {
+  public id!: string;
+  public name!: string;
+  public email!: string;
+  public password!: string;
+  public role!: 'admin' | 'customer';
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+
+  async matchPassword(enteredPassword: string): Promise<boolean> {
+    return await bcrypt.compare(enteredPassword, this.password);
+  }
 }
 
-const userSchema: Schema = new Schema(
+User.init(
   {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    role: { type: String, required: true, enum: ['admin', 'customer'], default: 'customer' },
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    role: {
+      type: DataTypes.ENUM('admin', 'customer'),
+      defaultValue: 'customer',
+      allowNull: false,
+    },
   },
   {
+    sequelize,
+    tableName: 'users',
     timestamps: true,
   }
 );
 
-userSchema.methods.matchPassword = async function (enteredPassword: string) {
-  return await bcrypt.compare(enteredPassword, this.password);
-};
-
-// Encrypt password before saving
-userSchema.pre<IUser>('save', async function () {
-  if (!this.isModified('password')) {
-    return;
-  }
-
+// Hash password before saving
+User.beforeCreate(async (user) => {
   const salt = await bcrypt.genSalt(10);
-  if (this.password) {
-    this.password = await bcrypt.hash(this.password, salt);
-  }
+  user.password = await bcrypt.hash(user.password, salt);
 });
-
-const User = mongoose.model<IUser>('User', userSchema);
 
 export default User;
