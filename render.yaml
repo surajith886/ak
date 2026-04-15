@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: medivault-backend
+    runtime: node
+    plan: free
+    buildCommand: cd backend && npm install && npm run build
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGO_URI
+        scope: build,runtime
+        sync: false
+
+  - type: web
+    name: medivault-frontend
+    runtime: static site
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    routes:
+      - path: /*
+        destination: /index.html
